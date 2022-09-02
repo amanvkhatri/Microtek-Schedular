@@ -44,7 +44,7 @@ function employeeData() {
     .then(response => {
       const length1 = response.data.length;
       console.log(length1);
-      response.data?.map((emp, index1) => {
+      response.data?.map((emp, index) => {
         if (emp.UserErpId && emp.UserStatus == "Active") {
           count1 = count1 + 1;
           delete emp.Createdat;
