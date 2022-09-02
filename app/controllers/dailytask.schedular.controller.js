@@ -1,5 +1,5 @@
 const db = require("../models");
-const sequelize = db.Sequelize;
+const sequelize = db.sequelize;
 const erpRecord = db.erpRecord;
 const dailyReport = db.dailyReport;
 const Op = db.Sequelize.Op;
@@ -24,8 +24,8 @@ var dailyTaskJob = new CronJob(
   true
 );
 
+var count1 = 0;
 function employeeData() {
-  var count = 0;
   const options = {
     method: 'GET',
     url: 'https://api.fieldassist.in/api/masterdata/employee/list?EpochTime=18',
@@ -46,19 +46,21 @@ function employeeData() {
       console.log(length1);
       response.data?.map((emp, index1) => {
         if (emp.UserErpId && emp.UserStatus == "Active") {
-          count = count + 1;
+          count1 = count1 + 1;
           delete emp.Createdat;
           delete emp.LastUpdatedAt;
-
-          erpRecord.create(emp)
-            .then(data => {
-              console.log(count);
-            })
-            .catch(err => {
-              console.log(err);
-            })
+          setTimeout(storeEmployee, 50 * index, emp)
         }
       })
+    })
+}
+async function storeEmployee(emp) {
+  erpRecord.create(emp)
+    .then(data => {
+      console.log(count1);
+    })
+    .catch(err => {
+      console.log(err);
     })
 }
 var count = 0;
@@ -68,7 +70,7 @@ function dailyTask() {
     .then(data => {
       data.map((emp, index) => {
         //getTask(emp.dataValues.UserErpId)
-        setTimeout(getTask, 50 * index, emp.dataValues.UserErpId)
+        setTimeout(getTask, 100 * index, emp.dataValues.UserErpId)
       })
     })
 }
@@ -86,7 +88,7 @@ async function getTask(id) {
       count = count + 1;
       taskResponse?.data?.UserTimelineDay?.map((task, index) => {
         task.UserErpId = taskResponse.data.ErpId
-        setTimeout(storeTask, 10 * index,task);
+        setTimeout(storeTask, 50 * index, task);
       })
     })
     .catch(err => {
