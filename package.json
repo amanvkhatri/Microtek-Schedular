@@ -2,9 +2,9 @@
   "name": "microtek-schedular",
   "version": "1.0.0",
   "description": "job schedular",
-  "main": "server.js",
+  "main": "schedular.js",
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "nodemon schedular.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
