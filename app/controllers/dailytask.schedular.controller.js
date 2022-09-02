@@ -8,7 +8,7 @@ const axios = require("axios");
 
 var CronJob = require('cron').CronJob;
 var employeeJob = new CronJob(
-  '30 13 * * *',
+  '20 14 * * *',
   function () {
     employeeData();
   },
@@ -16,7 +16,7 @@ var employeeJob = new CronJob(
   true
 );
 var dailyTaskJob = new CronJob(
-  '40 13 * * *',
+  '25 14 * * *',
   function () {
     dailyTask();
   },
