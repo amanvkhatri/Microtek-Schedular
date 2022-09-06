@@ -21,5 +21,6 @@ db.sequelize = sequelize;
 
 db.erpRecord = require("./erpRecord.model.js")(sequelize, Sequelize);
 db.dailyReport = require("./dailyTask.model.js")(sequelize, Sequelize);
+db.dailyAttendance = require("./dailyAttendance")(sequelize, Sequelize);
 
 module.exports = db;

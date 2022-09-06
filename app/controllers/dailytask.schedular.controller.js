@@ -2,9 +2,10 @@ const db = require("../models");
 const sequelize = db.sequelize;
 const erpRecord = db.erpRecord;
 const dailyReport = db.dailyReport;
+const dailyAttendance = db.dailyAttendance
 const Op = db.Sequelize.Op;
+const QueryTypes = sequelize.QueryTypes
 const axios = require("axios");
-
 
 var CronJob = require('cron').CronJob;
 var employeeJob = new CronJob(
@@ -23,8 +24,14 @@ var dailyTaskJob = new CronJob(
   null,
   true
 );
-
-var count1 = 0;
+var dailyTaskJob = new CronJob(
+  '0 6 * * *',
+  function () {
+    dailyTask();
+  },
+  null,
+  true
+);
 function employeeData() {
   const options = {
     method: 'GET',
@@ -46,7 +53,6 @@ function employeeData() {
       console.log(length1);
       response.data?.map((emp, index) => {
         if (emp.UserErpId && emp.UserStatus == "Active") {
-          count1 = count1 + 1;
           delete emp.Createdat;
           delete emp.LastUpdatedAt;
           setTimeout(storeEmployee, 50 * index, emp)
@@ -57,14 +63,11 @@ function employeeData() {
 async function storeEmployee(emp) {
   erpRecord.create(emp)
     .then(data => {
-      console.log(count1);
     })
     .catch(err => {
       console.log(err);
     })
 }
-var count = 0;
-var tempcount = 0;
 function dailyTask() {
   erpRecord.findAll()
     .then(data => {
@@ -85,7 +88,6 @@ async function getTask(id) {
     }
   })
     .then(taskResponse => {
-      count = count + 1;
       taskResponse?.data?.UserTimelineDay?.map((task, index) => {
         task.UserErpId = taskResponse.data.ErpId
         setTimeout(storeTask, 50 * index, task);
@@ -98,15 +100,11 @@ async function getTask(id) {
 async function storeTask(task) {
   dailyReport.create(task)
     .then(data1 => {
-      tempcount = tempcount + 1;
-      console.log(count);
-      console.log(tempcount);
     })
     .catch(err => {
       console.log(err);
     })
 }
-
 function getDate() {
   var date = new Date();
   var prev_date = new Date(date.setDate(date.getDate() - 1));
@@ -121,4 +119,17 @@ function getDate() {
   const year = prev_date.getFullYear();
   const final_date = month + "/" + day + "/" + year;
   return (final_date);
+}
+async function dailyAttend() {
+  var count = 0;
+  const data = await sequelize.query("select DayStartType, UserErpId, min(InTime) DayStart, max(OutTime) Dayend, date_format(current_date(),'%Y-%m-%d') CuurentDate from dailytasks where createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by UserErpId;", { type: QueryTypes.SELECT });
+  console.log(data[0]);
+  data?.map(attend=>{
+    dailyAttendance.create(attend)
+    .then(data=>{
+    })
+    .catch(err=>{
+      console.log(err);
+    })
+  })
 }
