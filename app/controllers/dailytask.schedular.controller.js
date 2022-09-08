@@ -32,7 +32,6 @@ var dailyTaskJob = new CronJob(
   null,
   true
 );
-dailyTask();
 function employeeData() {
   const options = {
     method: 'GET',
@@ -79,7 +78,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = "09/01/2022"
+  const date = getDate();
   axios({
     method: "get",
     url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
