@@ -25,6 +25,7 @@
     "express": "^4.17.1",
     "mysql2": "^2.0.2",
     "nodemon": "^2.0.19",
-    "sequelize": "^6.21.0"
+    "sequelize": "^6.21.0",
+    "tedious": "^15.1.0"
   }
 }

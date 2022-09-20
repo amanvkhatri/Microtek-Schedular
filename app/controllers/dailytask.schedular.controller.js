@@ -1,10 +1,12 @@
 const db = require("../models");
+const msDB = require("../msModels");
+const msSequelize = msDB.sequelize;
 const sequelize = db.sequelize;
 const erpRecord = db.erpRecord;
 const dailyReport = db.dailyReport;
 const dailyAttendance = db.dailyAttendance
 const Op = db.Sequelize.Op;
-const QueryTypes = sequelize.QueryTypes
+const { QueryTypes } = require('sequelize');
 const axios = require("axios");
 
 var CronJob = require('cron').CronJob;
@@ -122,9 +124,11 @@ function getDate() {
 }
 async function dailyAttend() {
   var count = 0;
-  const data = await sequelize.query("select DayStartType, UserErpId, min(InTime) DayStart, max(OutTime) Dayend, date_format(current_date(),'%Y-%m-%d') CuurentDate from dailytasks where createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by UserErpId;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select DayStartType, UserErpId, min(InTime) DayStart, max(OutTime) DayEnd, date_format(current_date(),'%Y-%m-%d') Date from dailytasks where createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by UserErpId;", { type: QueryTypes.SELECT });
   console.log(data[0]);
   data?.map(attend=>{
+    mssql(attend);
+    console.log(attend);
     dailyAttendance.create(attend)
     .then(data=>{
     })
@@ -132,4 +136,30 @@ async function dailyAttend() {
       console.log(err);
     })
   })
+}
+async function mssql(data){
+  var dayStart = ''
+  var dayEnd = ''
+  if (data.DayStart) {
+    dayStart = data.DayStart?.toISOString();
+  }
+  if(data.DayEnd){
+    dayEnd = data.DayEnd?.toISOString();
+  }
+  console.log(dayStart);
+  console.log(dayEnd);
+  await msSequelize.query(`insert into mtek_raw_punch_ps_napp (Empid, Punch_Date_Time, RP_CREATED_DATE, Record_LastUpdated, Isread) values('${data.UserErpId}', '${dayStart}',GETDATE(),GETDATE(),'0');`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    await msSequelize.query(`insert into mtek_raw_punch_ps_napp (Empid, Punch_Date_Time, RP_CREATED_DATE, Record_LastUpdated, Isread) values('${data.UserErpId}', '${dayEnd}',GETDATE(),GETDATE(),'0');`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
 }
