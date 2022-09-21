@@ -90,7 +90,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = "09/05/2022"
+  const date = "09/07/2022"
   axios({
     method: "get",
     url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
