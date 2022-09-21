@@ -43,6 +43,7 @@ var dailyTaskJob = new CronJob(
   null,
   true
 ); */
+employeeData();
 function employeeData() {
   const options = {
     method: 'GET',
@@ -79,7 +80,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
-dailyTask();
+//dailyTask();
 function dailyTask() {
   erpRecord.findAll()
     .then(data => {
