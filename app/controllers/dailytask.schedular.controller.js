@@ -11,7 +11,7 @@ const { QueryTypes } = require('sequelize');
 const axios = require("axios");
 
 var CronJob = require('cron').CronJob;
-/* var employeeJob = new CronJob(
+var employeeJob = new CronJob(
   '0 4 * * *',
   function () {
     employeeData();
@@ -27,7 +27,7 @@ var dailyTaskJob = new CronJob(
   null,
   true
 );
-var dailyTaskJob = new CronJob(
+var sales_dailyAttendJob = new CronJob(
   '0 5 * * *',
   function () {
     sales_dailyAttend();
@@ -35,14 +35,14 @@ var dailyTaskJob = new CronJob(
   null,
   true
 );
-var dailyTaskJob = new CronJob(
+var crm_dailyAttendJob = new CronJob(
   '30 5 * * *',
   function () {
     crm_dailyAttend();
   },
   null,
   true
-); */
+);
 function employeeData() {
   const options = {
     method: 'GET',
@@ -79,7 +79,6 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
-dailyTask();
 function dailyTask() {
   erpRecord.findAll()
     .then(data => {
@@ -90,7 +89,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = "09/20/2022"
+  const date = getDate();
   axios({
     method: "get",
     url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
