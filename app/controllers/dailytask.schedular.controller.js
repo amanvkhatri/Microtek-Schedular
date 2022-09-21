@@ -4,14 +4,15 @@ const msSequelize = msDB.sequelize;
 const sequelize = db.sequelize;
 const erpRecord = db.erpRecord;
 const dailyReport = db.dailyReport;
-const dailyAttendance = db.dailyAttendance
+const salesDailyAttendance = db.salesDailyAttendance
+const crmDailyAttendance = db.crmDailyAttendance;
 const Op = db.Sequelize.Op;
 const { QueryTypes } = require('sequelize');
 const axios = require("axios");
 
 var CronJob = require('cron').CronJob;
-var employeeJob = new CronJob(
-  '0 5 * * *',
+/* var employeeJob = new CronJob(
+  '0 4 * * *',
   function () {
     employeeData();
   },
@@ -19,7 +20,7 @@ var employeeJob = new CronJob(
   true
 );
 var dailyTaskJob = new CronJob(
-  '30 5 * * *',
+  '30 4 * * *',
   function () {
     dailyTask();
   },
@@ -27,13 +28,21 @@ var dailyTaskJob = new CronJob(
   true
 );
 var dailyTaskJob = new CronJob(
-  '0 6 * * *',
+  '0 5 * * *',
   function () {
-    dailyAttend();
+    sales_dailyAttend();
   },
   null,
   true
 );
+var dailyTaskJob = new CronJob(
+  '30 5 * * *',
+  function () {
+    crm_dailyAttend();
+  },
+  null,
+  true
+); */
 function employeeData() {
   const options = {
     method: 'GET',
@@ -70,6 +79,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
+dailyTask();
 function dailyTask() {
   erpRecord.findAll()
     .then(data => {
@@ -80,7 +90,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = getDate();
+  const date = "09/01/2022"
   axios({
     method: "get",
     url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
@@ -122,40 +132,68 @@ function getDate() {
   const final_date = month + "/" + day + "/" + year;
   return (final_date);
 }
-async function dailyAttend() {
-  var count = 0;
-  const data = await sequelize.query("select DayStartType, UserErpId, min(InTime) DayStart, max(OutTime) DayEnd, date_format(current_date(),'%Y-%m-%d') Date from dailytasks where createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by UserErpId;", { type: QueryTypes.SELECT });
-  console.log(data[0]);
-  data?.map(attend=>{
-    mssql(attend);
+async function sales_dailyAttend() {
+  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by daystarttype,date_format(createdAt,'%Y-%m-%d'),UserErpId order by daystarttype,usererpid,date_format(createdAt,'%Y-%m-%d')) tt;", { type: QueryTypes.SELECT });
+  data?.map(attend => {
+    sales_mssql(attend);
     console.log(attend);
-    dailyAttendance.create(attend)
-    .then(data=>{
-    })
-    .catch(err=>{
-      console.log(err);
-    })
+    salesDailyAttendance.create(attend)
+      .then(data => {
+      })
+      .catch(err => {
+        console.log(err);
+      })
   })
 }
-async function mssql(data){
+async function sales_mssql(data) {
   var dayStart = ''
   var dayEnd = ''
-  if (data.DayStart) {
-    dayStart = data.DayStart?.toISOString();
+  if (data.InTime) {
+    dayStart = data.InTime?.toISOString();
   }
-  if(data.DayEnd){
-    dayEnd = data.DayEnd?.toISOString();
+  if (data.OutTime) {
+    dayEnd = data.OutTime?.toISOString();
   }
   console.log(dayStart);
   console.log(dayEnd);
-  await msSequelize.query(`insert into mtek_raw_punch_ps_napp (Empid, Punch_Date_Time, RP_CREATED_DATE, Record_LastUpdated, Isread) values('${data.UserErpId}', '${dayStart}',GETDATE(),GETDATE(),'0');`, { type: QueryTypes.INSERT })
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${dayStart}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
     .then((res) => {
       console.log(res);
     })
     .catch((err) => {
       console.log(err);
     })
-    await msSequelize.query(`insert into mtek_raw_punch_ps_napp (Empid, Punch_Date_Time, RP_CREATED_DATE, Record_LastUpdated, Isread) values('${data.UserErpId}', '${dayEnd}',GETDATE(),GETDATE(),'0');`, { type: QueryTypes.INSERT })
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${dayEnd}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+}
+async function crm_dailyAttend() {
+  const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
+  console.log(data[0]);
+  data?.map(attend => {
+    crm_mssql(attend);
+    console.log(attend);
+    crmDailyAttendance.create(attend)
+      .then(data => {
+      })
+      .catch(err => {
+        console.log(err);
+      })
+  })
+}
+async function crm_mssql(data) {
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${data.InTime}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${data.OutTime}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
     .then((res) => {
       console.log(res);
     })
