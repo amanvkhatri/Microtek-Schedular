@@ -36,7 +36,7 @@ var sales_dailyAttendJob = new CronJob(
   true
 );
 var crm_dailyAttendJob = new CronJob(
-  '30 5 * * *',
+  '0 5 * * *',
   function () {
     crm_dailyAttend();
   },
@@ -79,18 +79,20 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
-dailyTask();
-function dailyTask() {
+function dailyTask(date) {
   erpRecord.findAll()
     .then(data => {
       data.map((emp, index) => {
         //getTask(emp.dataValues.UserErpId)
-        setTimeout(getTask, 100 * index, emp.dataValues.UserErpId)
+        setTimeout(getTask, 100 * index, emp.dataValues.UserErpId,date)
       })
     })
 }
-async function getTask(id) {
-  const date = getDate();
+async function getTask(id, date) {
+  //const date = getDate();
+  const datearray = date.split("/");
+  const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
+  console.log(sqlDate);
   axios({
     method: "get",
     url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
@@ -102,6 +104,7 @@ async function getTask(id) {
     .then(taskResponse => {
       taskResponse?.data?.UserTimelineDay?.map((task, index) => {
         task.UserErpId = taskResponse.data.ErpId
+        task.PunchDate = sqlDate
         setTimeout(storeTask, 50 * index, task);
       })
     })
@@ -133,7 +136,7 @@ function getDate() {
   return (final_date);
 }
 async function sales_dailyAttend() {
-  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and createdAt >date_format(current_date(),'%Y-%m-%d') and createdAt < date_format(current_date() +  INTERVAL 1 DAY ,'%Y-%m-%d') group by daystarttype,date_format(createdAt,'%Y-%m-%d'),UserErpId order by daystarttype,usererpid,date_format(createdAt,'%Y-%m-%d')) tt;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and InTime >date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') group by daystarttype,date_format(createdAt,'%Y-%m-%d'),UserErpId order by daystarttype,usererpid,date_format(createdAt,'%Y-%m-%d')) tt;", { type: QueryTypes.SELECT });
   data?.map(attend => {
     sales_mssql(attend);
     console.log(attend);
@@ -201,3 +204,32 @@ async function crm_mssql(data) {
       console.log(err);
     })
 }
+function loop(){
+  const dates = [
+    "09/01/2022",
+    "09/02/2022",
+    "09/03/2022",
+    "09/04/2022",
+    "09/05/2022",
+    "09/06/2022",
+    "09/07/2022",
+    "09/08/2022",
+    "09/09/2022",
+    "09/10/2022",
+    "09/11/2022",
+    "09/12/2022",
+    "09/13/2022",
+    "09/14/2022",
+    "09/15/2022",
+    "09/16/2022",
+    "09/17/2022",
+    "09/18/2022",
+    "09/19/2022",
+    "09/20/2022",
+    "09/21/2022",
+  ];
+  dates.map((date, index)=>{
+    setTimeout(dailyTask, 180000 * index, date);
+  })
+}
+loop();

@@ -3,6 +3,9 @@ module.exports = (sequelize, Sequelize) => {
       UserErpId: {
         type: Sequelize.STRING
       },
+      PunchDate: {
+        type: Sequelize.STRING
+      },
       TransactionId: {
         type: Sequelize.STRING
       },
