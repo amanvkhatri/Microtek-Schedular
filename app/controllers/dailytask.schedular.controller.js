@@ -79,7 +79,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
-function dailyTask(date) {
+function dailyTask() {
   erpRecord.findAll()
     .then(data => {
       data.map((emp, index) => {
@@ -88,8 +88,8 @@ function dailyTask(date) {
       })
     })
 }
-async function getTask(id, date) {
-  //const date = getDate();
+async function getTask(id) {
+  const date = getDate();
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
@@ -204,32 +204,3 @@ async function crm_mssql(data) {
       console.log(err);
     })
 }
-function loop(){
-  const dates = [
-    "09/01/2022",
-    "09/02/2022",
-    "09/03/2022",
-    "09/04/2022",
-    "09/05/2022",
-    "09/06/2022",
-    "09/07/2022",
-    "09/08/2022",
-    "09/09/2022",
-    "09/10/2022",
-    "09/11/2022",
-    "09/12/2022",
-    "09/13/2022",
-    "09/14/2022",
-    "09/15/2022",
-    "09/16/2022",
-    "09/17/2022",
-    "09/18/2022",
-    "09/19/2022",
-    "09/20/2022",
-    "09/21/2022",
-  ];
-  dates.map((date, index)=>{
-    setTimeout(dailyTask, 180000 * index, date);
-  })
-}
-loop();
