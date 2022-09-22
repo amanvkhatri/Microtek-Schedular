@@ -79,6 +79,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
+dailyTask();
 function dailyTask() {
   erpRecord.findAll()
     .then(data => {
