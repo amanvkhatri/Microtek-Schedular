@@ -9,6 +9,7 @@ const crmDailyAttendance = db.crmDailyAttendance;
 const Op = db.Sequelize.Op;
 const { QueryTypes } = require('sequelize');
 const axios = require("axios");
+var moment = require('moment');
 
 var CronJob = require('cron').CronJob;
 var employeeJob = new CronJob(
@@ -89,7 +90,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = getDate();
+  const date = getMomentDate();
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
@@ -132,6 +133,20 @@ function getDate() {
     month = "0" + month;
   }
   const year = prev_date.getFullYear();
+  const final_date = month + "/" + day + "/" + year;
+  return (final_date);
+}
+function getMomentDate() {
+  var prev_date = moment().subtract(1, 'days');
+  var day = prev_date.date();
+  if (day < 10) {
+    day = "0" + day;
+  }
+  var month = prev_date.month() + 1;
+  if (month < 10) {
+    month = "0" + month;
+  }
+  const year = prev_date.year();
   const final_date = month + "/" + day + "/" + year;
   return (final_date);
 }
