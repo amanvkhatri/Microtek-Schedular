@@ -175,7 +175,7 @@ async function sales_mssql(data) {
     })
 }
 async function crm_dailyAttend() {
-  const data = await sequelize.query("new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 30 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 30 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
   console.log(data[0]);
   data?.map(attend => {
     crm_mssql(attend);
@@ -205,5 +205,4 @@ async function crm_mssql(data) {
     })
 }
 
-sales_dailyAttend();
 crm_dailyAttend();
