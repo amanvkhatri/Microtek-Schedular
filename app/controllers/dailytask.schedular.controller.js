@@ -13,7 +13,7 @@ var moment = require('moment');
 
 var CronJob = require('cron').CronJob;
 var employeeJob = new CronJob(
-  '0 4 * * *',
+  '0 5 * * *',
   function () {
     employeeData();
   },
@@ -21,7 +21,7 @@ var employeeJob = new CronJob(
   true
 );
 var dailyTaskJob = new CronJob(
-  '30 4 * * *',
+  '30 5 * * *',
   function () {
     dailyTask();
   },
@@ -29,7 +29,7 @@ var dailyTaskJob = new CronJob(
   true
 );
 var sales_dailyAttendJob = new CronJob(
-  '0 5 * * *',
+  '0 6 * * *',
   function () {
     sales_dailyAttend();
   },
@@ -37,13 +37,15 @@ var sales_dailyAttendJob = new CronJob(
   true
 );
 var crm_dailyAttendJob = new CronJob(
-  '0 5 * * *',
+  '0 6 * * *',
   function () {
     crm_dailyAttend();
   },
   null,
   true
 );
+sales_dailyAttend();
+crm_dailyAttend();
 function employeeData() {
   const options = {
     method: 'GET',
