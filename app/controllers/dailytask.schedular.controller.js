@@ -37,7 +37,7 @@ var sales_dailyAttendJob = new CronJob(
   true
 );
 var crm_dailyAttendJob = new CronJob(
-  '0 6 * * *',
+  '40 5 * * *',
   function () {
     crm_dailyAttend();
   },
@@ -219,3 +219,4 @@ async function crm_mssql(data) {
       console.log(err);
     })
 }
+crm_dailyAttend();
