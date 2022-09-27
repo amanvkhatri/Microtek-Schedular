@@ -219,4 +219,3 @@ async function crm_mssql(data) {
       console.log(err);
     })
 }
-crm_dailyAttend();
