@@ -163,7 +163,7 @@ async function sales_dailyAttend() {
         console.log(err);
       })
   }) */
-  const unmatched_data = await sequelize.query(`select UserErpId, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where InTime >date_format(current_date() - INTERVAL 30 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
+  const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where InTime >date_format(current_date() - INTERVAL 30 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
   unmatched_data?.map(attend => {
     sales_mssql(attend);
     console.log(attend);
