@@ -1,5 +1,5 @@
 module.exports = {
-    HOST: "192.168.1.170",
+    HOST: "192.168.1.181",
     USER: "sa",
     PASSWORD: "Test@2019",
     DB: "SavvyHRMS",
