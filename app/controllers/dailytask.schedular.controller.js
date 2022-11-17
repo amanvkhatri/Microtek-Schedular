@@ -44,7 +44,7 @@ var crm_dailyAttendJob = new CronJob(
   null,
   true
 );
-dailyTask();
+sales_dailyAttend();
 function employeeData() {
   const options = {
     method: 'GET',
@@ -82,6 +82,7 @@ async function storeEmployee(emp) {
     })
 }
 function dailyTask() {
+  console.log("hello");
   erpRecord.findAll()
     .then(data => {
       data.map((emp, index) => {
