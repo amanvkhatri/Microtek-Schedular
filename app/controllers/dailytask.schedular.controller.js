@@ -44,6 +44,7 @@ var crm_dailyAttendJob = new CronJob(
   null,
   true
 );
+employeeData();
 function employeeData() {
   const options = {
     method: 'GET',
