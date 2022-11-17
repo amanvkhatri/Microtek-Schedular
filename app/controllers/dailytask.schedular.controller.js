@@ -44,7 +44,7 @@ var crm_dailyAttendJob = new CronJob(
   null,
   true
 );
-sales_dailyAttend()
+dailyTask();
 function employeeData() {
   const options = {
     method: 'GET',
@@ -91,7 +91,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = getMomentDate();
+  const date = '11/09/2022'; // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
