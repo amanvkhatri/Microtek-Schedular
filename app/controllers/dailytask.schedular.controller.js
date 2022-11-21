@@ -201,9 +201,8 @@ async function sales_mssql(data) {
       console.log(err);
     })
 }
-crm_dailyAttend();
 async function crm_dailyAttend() {
-  /* const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
   console.log(data[0]);
   data?.map(attend => {
     crm_mssql(attend);
@@ -214,8 +213,8 @@ async function crm_dailyAttend() {
       .catch(err => {
         console.log(err);
       })
-  }) */
-  const unmatched_data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 100 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;", { type: QueryTypes.SELECT });
+  })
+  const unmatched_data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date()  ,'%Y-%m-%d') and t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;", { type: QueryTypes.SELECT });
   console.log(unmatched_data[0]);
   unmatched_data?.map(attend => {
     crm_mssql(attend);
