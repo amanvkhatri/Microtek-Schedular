@@ -153,26 +153,40 @@ function getMomentDate() {
 }
 async function sales_dailyAttend() {
   const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId,PunchDate, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and InTime >date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date() ,'%Y-%m-%d') group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate) tt;", { type: QueryTypes.SELECT });
-  data?.map(attend => {
+  data?.map(async attend => {
     sales_mssql(attend);
     console.log(attend);
-    salesDailyAttendance.create(attend)
+    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    /* salesDailyAttendance.create(attend)
       .then(data => {
       })
       .catch(err => {
         console.log(err);
-      })
+      }) */
   })
   const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where InTime >date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
-  unmatched_data?.map(attend => {
+  unmatched_data?.map(async attend => {
     sales_mssql(attend);
     console.log(attend);
-    salesDailyAttendance.create(attend)
+    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    /* salesDailyAttendance.create(attend)
       .then(data => {
       })
       .catch(err => {
         console.log(err);
-      })
+      }) */
   })
 }
 async function sales_mssql(data) {
