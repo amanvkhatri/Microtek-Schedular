@@ -214,17 +214,24 @@ async function crm_dailyAttend() {
         console.log(err);
       })
   })
-  const unmatched_data = await sequelize.query(`select eng_id employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and  t1.punch_date < date_format(current_date(),'%Y-%m-%d') and  t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;`, { type: QueryTypes.SELECT });
+  const unmatched_data = await sequelize.query(`select eng_id employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1 where  t1.punch_date >=date_format(current_date() -  INTERVAL 2 DAY,'%Y-%m-%d') and  t1.punch_date < date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and  t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;`, { type: QueryTypes.SELECT });
   console.log(unmatched_data[0]);
-  unmatched_data?.map(attend => {
-    crm_mssql(attend);
+  unmatched_data?.map(async attend => {
+    //crm_mssql(attend);
     console.log(attend);
-    crmDailyAttendance.create(attend)
+      await sequelize.query(`Insert into crm_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    /* crmDailyAttendance.create(attend)
       .then(data => {
       })
       .catch(err => {
         console.log(err);
-      })
+      }) */
   })
 }
 async function crm_mssql(data) {
