@@ -13,14 +13,14 @@ var moment = require('moment');
 
 var CronJob = require('cron').CronJob;
 
-var cashfreeBalance = new CronJob(
+/* var cashfreeBalance = new CronJob(
     '',
     function(){
         cashfreeGetBalance()
     },
     null,
     true
-)
+) */
 
 var employeeJob = new CronJob(
   '0 5 * * *',
