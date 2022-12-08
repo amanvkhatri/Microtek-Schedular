@@ -12,6 +12,16 @@ const axios = require("axios");
 var moment = require('moment');
 
 var CronJob = require('cron').CronJob;
+
+var cashfreeBalance = new CronJob(
+    '',
+    function(){
+        cashfreeGetBalance()
+    },
+    null,
+    true
+)
+
 var employeeJob = new CronJob(
   '0 5 * * *',
   function () {
@@ -215,8 +225,9 @@ async function sales_mssql(data) {
       console.log(err);
     })
 }
+crm_dailyAttend();
 async function crm_dailyAttend() {
-  const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date(),'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select new_e_code employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1,crm_employee_mapping t2 where  t1.punch_date >=date_format(current_date() -  INTERVAL 8 DAY,'%Y-%m-%d') and t1.punch_date < date_format(current_date() -  INTERVAL 7 DAY,'%Y-%m-%d') and t1.eng_id=t2.employee_id ) tt;", { type: QueryTypes.SELECT });
   console.log(data[0]);
   data?.map(async attend => {
     crm_mssql(attend);
@@ -236,7 +247,7 @@ async function crm_dailyAttend() {
         console.log(err);
       }) */
   })
-  const unmatched_data = await sequelize.query(`select eng_id employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1 where  t1.punch_date >=date_format(current_date() -  INTERVAL 1 DAY,'%Y-%m-%d') and  t1.punch_date < date_format(current_date(),'%Y-%m-%d') and  t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;`, { type: QueryTypes.SELECT });
+  const unmatched_data = await sequelize.query(`select eng_id employee_id,in_time InTime, out_time OutTime from ( select * from attendancedata t1 where  t1.punch_date >=date_format(current_date() -  INTERVAL 8 DAY,'%Y-%m-%d') and  t1.punch_date < date_format(current_date() -  INTERVAL 7 DAY,'%Y-%m-%d') and  t1.eng_id Not In (select distinct(employee_id) from crm_employee_mapping) ) tt;`, { type: QueryTypes.SELECT });
   console.log(unmatched_data[0]);
   unmatched_data?.map(async attend => {
     crm_mssql(attend);
@@ -272,3 +283,21 @@ async function crm_mssql(data) {
       console.log(err);
     })
 }
+
+function cashfreeGetBalance(){
+    const options = {
+        method: 'POST',
+        url: 'https://payout-api.cashfree.com/payout/v1/authorize',
+        headers: { 
+            'X-Client-Id': 'CF282299CD3U1TLGL813I08185MG', 
+            'X-Client-Secret': 'ba13b6e971c3842339fb7af2854c38d70f42ca49'
+          },
+      };
+    axios.request(options)
+    .then((res)=>{
+            console.log(res);
+    })
+    .catch((err)=>{
+        console.log(err);
+    })
+}   
