@@ -164,6 +164,7 @@ function getMomentDate() {
 sales_dailyAttend()
 async function sales_dailyAttend() {
   const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId,PunchDate, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and InTime >date_format(current_date() - INTERVAL 14 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate) tt;", { type: QueryTypes.SELECT });
+  console.log(data);
   data?.map(async attend => {
     //sales_mssql(attend);
     console.log(attend);
