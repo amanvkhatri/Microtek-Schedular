@@ -39,7 +39,7 @@ var dailyTaskJob = new CronJob(
   true
 );
 var sales_dailyAttendJob = new CronJob(
-  '0 6 * * *',
+  '05 11 * * *',
   function () {
     sales_dailyAttend();
   },
@@ -90,7 +90,6 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
-dailyTask();
 function dailyTask() {
   console.log("hello");
   erpRecord.findAll()
@@ -102,7 +101,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = '12/02/2022'//getMomentDate(); // mm/dd/yyyy
+  const date = getMomentDate(); // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
