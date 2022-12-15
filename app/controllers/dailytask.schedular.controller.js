@@ -168,7 +168,7 @@ async function sales_dailyAttend() {
     //sales_mssql(attend);
     console.log(attend);
     console.log(`${attend.InTime}`);
-    /* await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
+    /* await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime?.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime?.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
       .then((res) => {
         console.log(res);
       })
@@ -186,7 +186,7 @@ async function sales_dailyAttend() {
   unmatched_data?.map(async attend => {
     //sales_mssql(attend);
     console.log(attend);
-    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
+    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime?.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime?.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
       .then((res) => {
         console.log(res);
       })
