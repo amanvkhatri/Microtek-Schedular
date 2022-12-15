@@ -90,6 +90,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
+dailyTask();
 function dailyTask() {
   console.log("hello");
   erpRecord.findAll()
@@ -101,7 +102,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = getMomentDate(); // mm/dd/yyyy
+  const date = '12/02/2022'//getMomentDate(); // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
@@ -294,9 +295,22 @@ function cashfreeGetBalance(){
       };
     axios.request(options)
     .then((res)=>{
-            console.log(res);
+            console.log(res.data);
+            const get_balance_options = {
+              method: 'GET',
+              url: 'https://payout-api.cashfree.com/payout/v1.2/getBalance',
+              headers: { 
+                  'Authorization': `Bearer ${res.data.data.token}`, 
+                  'Content-Type': 'application/json'
+                },
+            };
+          axios.request(get_balance_options)
+          .then(response=>{
+            console.log(response.data);
+          })
     })
     .catch((err)=>{
         console.log(err);
     })
 }   
+cashfreeGetBalance();
