@@ -102,7 +102,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = '12/13/2022'//getMomentDate(); // mm/dd/yyyy
+  const date = '12/14/2022'//getMomentDate(); // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
