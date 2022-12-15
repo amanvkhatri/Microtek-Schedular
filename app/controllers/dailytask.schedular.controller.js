@@ -102,7 +102,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = '12/01/2022'//getMomentDate(); // mm/dd/yyyy
+  const date = '12/02/2022'//getMomentDate(); // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
@@ -118,7 +118,7 @@ async function getTask(id) {
       taskResponse?.data?.UserTimelineDay?.map((task, index) => {
         task.UserErpId = taskResponse.data.ErpId
         task.PunchDate = sqlDate
-        setTimeout(storeTask, 50 * index, task);
+        setTimeout(storeTask, 100 * index, task);
       })
     })
     .catch(err => {
