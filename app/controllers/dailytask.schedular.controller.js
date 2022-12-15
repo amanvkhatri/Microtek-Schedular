@@ -39,7 +39,7 @@ var dailyTaskJob = new CronJob(
   true
 );
 var sales_dailyAttendJob = new CronJob(
-  '05 11 * * *',
+  '00 6 * * *',
   function () {
     sales_dailyAttend();
   },
@@ -173,12 +173,12 @@ async function sales_dailyAttend() {
       .catch((err) => {
         console.log(err);
       })
-    /* salesDailyAttendance.create(attend)
+    salesDailyAttendance.create(attend)
       .then(data => {
       })
       .catch(err => {
         console.log(err);
-      }) */
+      })
   })
   const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where InTime >date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
   unmatched_data?.map(async attend => {
@@ -191,12 +191,12 @@ async function sales_dailyAttend() {
       .catch((err) => {
         console.log(err);
       })
-    /* salesDailyAttendance.create(attend)
+    salesDailyAttendance.create(attend)
       .then(data => {
       })
       .catch(err => {
         console.log(err);
-      }) */
+      })
   })
 }
 async function sales_mssql(data) {
