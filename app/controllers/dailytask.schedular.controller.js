@@ -98,6 +98,7 @@ async function storeEmployee(emp) {
       console.log(err);
     })
 }
+dailyTask();
 function dailyTask() {
   console.log("hello");
   erpRecord.findAll()
@@ -109,7 +110,7 @@ function dailyTask() {
     })
 }
 async function getTask(id) {
-  const date = '12/03/2022'//getMomentDate(); // mm/dd/yyyy
+  const date = '12/15/2022'//getMomentDate(); // mm/dd/yyyy
   const datearray = date.split("/");
   const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
   console.log(sqlDate);
@@ -322,4 +323,4 @@ function cashfreeGetBalance(){
         console.log(err);
     })
 }   
-cashfreeGetBalance();
+//cashfreeGetBalance();
