@@ -25,7 +25,7 @@ db.sequelize.sync()
     console.log("Failed to sync db: " + err.message);
   });
 
-  const msdb = require("./app/msModels/index");
+const msdb = require("./app/msModels/index");
 
 msdb.sequelize.sync()
   .then(() => {
@@ -33,6 +33,16 @@ msdb.sequelize.sync()
   })
   .catch((err) => {
     console.log("Failed to sync db: " + err.message);
+  });
+
+const awsdb = require("./app/awsModels/index");
+
+awsdb.sequelize.sync()
+  .then(() => {
+    console.log("Synced AWS MY-SQL db.");
+  })
+  .catch((err) => {
+    console.log("Failed to sync aws db: " + err.message);
   });
 // // drop the table if it already exists
 // db.sequelize.sync({ force: true }).then(() => {

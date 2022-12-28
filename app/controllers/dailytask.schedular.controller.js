@@ -31,7 +31,7 @@ var employeeJob = new CronJob(
   true
 );
 var dailyTaskJob = new CronJob(
-  '30 5 * * *',
+  '31 5 * * *',
   function () {
     dailyTask();
   },
@@ -104,7 +104,7 @@ function dailyTask() {
     .then(data => {
       data.map((emp, index) => {
         //getTask(emp.dataValues.UserErpId)
-        setTimeout(getTask, 100 * index, emp.dataValues.UserErpId)
+        setTimeout(getTask, 200 * index, emp.dataValues.UserErpId)
       })
     })
 }
@@ -132,6 +132,7 @@ async function getTask(id) {
       console.log(err);
     })
 }
+//dailyTask()
 async function storeTask(task) {
   dailyReport.create(task)
     .then(data1 => {
@@ -170,7 +171,7 @@ function getMomentDate() {
   return (final_date);
 }
 async function sales_dailyAttend() {
-  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId,PunchDate, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and InTime > date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate) tt;", { type: QueryTypes.SELECT });
+  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId,PunchDate, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and PunchDate > date_format(current_date() - INTERVAL 1 DAY, '%Y-%m-%d') group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate) tt;", { type: QueryTypes.SELECT });
   data?.map(async attend => {
     sales_mssql(attend);
     console.log(attend);
@@ -189,7 +190,7 @@ async function sales_dailyAttend() {
         console.log(err);
       }) */
   })
-  const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where InTime >date_format(current_date() - INTERVAL 1 DAY ,'%Y-%m-%d') and InTime < date_format(current_date(),'%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
+  const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  InTime end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else  OutTime end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where PunchDate > date_format(current_date() - INTERVAL 1 DAY, '%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
   unmatched_data?.map(async attend => {
     sales_mssql(attend);
     console.log(attend);
@@ -208,6 +209,7 @@ async function sales_dailyAttend() {
       }) */
   })
 }
+//sales_dailyAttend()
 async function sales_mssql(data) {
   var dayStart = ''
   var dayEnd = ''
