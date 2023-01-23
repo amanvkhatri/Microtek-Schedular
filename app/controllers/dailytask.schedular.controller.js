@@ -102,9 +102,12 @@ function dailyTask() {
   console.log("hello");
   erpRecord.findAll()
     .then(data => {
-      data.map((emp, index) => {
+      data.map(async (emp, index) => {
         //getTask(emp.dataValues.UserErpId)
-        setTimeout(getTask, 200 * index, emp.dataValues.UserErpId)
+        await sleep(index*100);
+        //console.log(emp.dataValues.UserErpId);
+        getTask(emp.dataValues.UserErpId)
+        //setTimeout(getTask, 200 * index, emp.dataValues.UserErpId)
       })
     })
 }
@@ -132,6 +135,7 @@ async function getTask(id) {
       console.log(err);
     })
 }
+//employeeData()
 //dailyTask()
 async function storeTask(task) {
   dailyReport.create(task)
@@ -244,7 +248,7 @@ async function crm_dailyAttend() {
     console.log(attend);
     console.log(`${attend.InTime}`);
     console.log(attend);
-      await sequelize.query(`Insert into crm_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
+    await sequelize.query(`Insert into crm_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
       .then((res) => {
         console.log(res);
       })
@@ -263,7 +267,7 @@ async function crm_dailyAttend() {
   unmatched_data?.map(async attend => {
     crm_mssql(attend);
     console.log(attend);
-      await sequelize.query(`Insert into crm_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
+    await sequelize.query(`Insert into crm_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime}', '${attend.OutTime}',now(),now())`, { type: QueryTypes.INSERT })
       .then((res) => {
         console.log(res);
       })
@@ -295,33 +299,36 @@ async function crm_mssql(data) {
     })
 }
 
-function cashfreeGetBalance(){
-    const options = {
-        method: 'POST',
-        url: 'https://payout-api.cashfree.com/payout/v1/authorize',
-        headers: { 
-            'X-Client-Id': 'CF282299CD3U1TLGL813I08185MG', 
-            'X-Client-Secret': 'ba13b6e971c3842339fb7af2854c38d70f42ca49'
-          },
+function cashfreeGetBalance() {
+  const options = {
+    method: 'POST',
+    url: 'https://payout-api.cashfree.com/payout/v1/authorize',
+    headers: {
+      'X-Client-Id': 'CF282299CD3U1TLGL813I08185MG',
+      'X-Client-Secret': 'ba13b6e971c3842339fb7af2854c38d70f42ca49'
+    },
+  };
+  axios.request(options)
+    .then((res) => {
+      console.log(res.data);
+      const get_balance_options = {
+        method: 'GET',
+        url: 'https://payout-api.cashfree.com/payout/v1.2/getBalance',
+        headers: {
+          'Authorization': `Bearer ${res.data.data.token}`,
+          'Content-Type': 'application/json'
+        },
       };
-    axios.request(options)
-    .then((res)=>{
-            console.log(res.data);
-            const get_balance_options = {
-              method: 'GET',
-              url: 'https://payout-api.cashfree.com/payout/v1.2/getBalance',
-              headers: { 
-                  'Authorization': `Bearer ${res.data.data.token}`, 
-                  'Content-Type': 'application/json'
-                },
-            };
-          axios.request(get_balance_options)
-          .then(response=>{
-            console.log(response.data);
-          })
+      axios.request(get_balance_options)
+        .then(response => {
+          console.log(response.data);
+        })
     })
-    .catch((err)=>{
-        console.log(err);
+    .catch((err) => {
+      console.log(err);
     })
-}   
+}
 //cashfreeGetBalance();
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
