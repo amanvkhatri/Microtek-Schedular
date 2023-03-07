@@ -44,6 +44,16 @@ awsdb.sequelize.sync()
   .catch((err) => {
     console.log("Failed to sync aws db: " + err.message);
   });
+
+const frtDB = require("./app/frtModel/index");
+
+frtDB.sequelize.sync()
+  .then(() => {
+    console.log("Synced FRT SQL db.");
+  })
+  .catch((err) => {
+    console.log("Failed to sync FRT db: " + err.message);
+  });
 // // drop the table if it already exists
 // db.sequelize.sync({ force: true }).then(() => {
 //   console.log("Drop and re-sync db.");
