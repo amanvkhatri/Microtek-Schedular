@@ -1,5 +1,5 @@
 module.exports = {
-    HOST: "192.168.1.5",
+    HOST: "192.168.1.13",
     USER: "frtapi",
     PASSWORD: "mipl@2022",
     DB: "etimetracklite1",
