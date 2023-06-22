@@ -54,10 +54,34 @@ var sales_dailyAttendJob = new CronJob(
   null,
   true
 );
+var sales_dailyAttendJob = new CronJob(
+  '30 21 * * *',
+  function () {
+    sales_dailyAttendToday();
+  },
+  null,
+  true
+);
 var crm_dailyAttendJob = new CronJob(
   '30 7 * * *',
   function () {
     crm_dailyAttend();
+  },
+  null,
+  true
+);
+var dailyTaskJobToday1 = new CronJob(
+  '00 21 * * *',
+  function () {
+    dailyTaskToday();
+  },
+  null,
+  true
+);
+var dailyTaskJobToday2 = new CronJob(
+  '15 21 * * *',
+  function () {
+    dailyTaskToday();
   },
   null,
   true
@@ -81,6 +105,7 @@ function employeeData() {
     .then(response => {
       const length1 = response.data.length;
       console.log(length1);
+      //console.log(response.data);
       response.data?.map((emp, index) => {
         if (emp.UserErpId && emp.UserStatus == "Active") {
           delete emp.Createdat;
@@ -93,6 +118,7 @@ function employeeData() {
 async function storeEmployee(emp) {
   erpRecord.create(emp)
     .then(data => {
+      console.log(data);
     })
     .catch(err => {
       console.log(err);
@@ -332,3 +358,137 @@ function cashfreeGetBalance() {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+
+
+
+
+// NEW REQUIREMENT
+
+
+
+function getMomentDateToday() {
+  var prev_date = moment();
+  var day = prev_date.date();
+  if (day < 10) {
+    day = "0" + day;
+  }
+  var month = prev_date.month() + 1;
+  if (month < 10) {
+    month = "0" + month;
+  }
+  const year = prev_date.year();
+  const final_date = month + "/" + day + "/" + year;
+  return (final_date);
+}
+// NEW Today punch fetch
+function dailyTaskToday() {
+  console.log("hello");
+  erpRecord.findAll()
+    .then(data => {
+      console.log(data);
+      data.map(async (emp, index) => {
+        //getTask(emp.dataValues.UserErpId)
+        await sleep(index*200);
+        //console.log(emp.dataValues.UserErpId);
+        getTaskToday(emp.dataValues.UserErpId)
+        //setTimeout(getTask, 200 * index, emp.dataValues.UserErpId)
+      })
+    })
+}
+async function getTaskToday(id) {
+  console.log(getMomentDateToday());
+  const date = getMomentDateToday(); // mm/dd/yyyy
+  const datearray = date.split("/");
+  const sqlDate = datearray[2] + "-" + datearray[0] + "-" + datearray[1]
+  console.log(sqlDate);
+  axios({
+    method: "get",
+    url: `https://api.fieldassist.in/api/timeline/list?erpId=${id}&date=${date}`,
+    headers: {
+      "Content-Type": "multipart/form-data",
+      'Authorization': 'Basic VGVzdF8xMTAwODpPRU82clBYZGRCOHdtU1pJISR4Iw==',
+    }
+  })
+    .then(taskResponse => {
+      console.log(taskResponse.data);
+      taskResponse?.data?.UserTimelineDay?.map((task, index) => {
+        task.UserErpId = taskResponse.data.ErpId
+        task.PunchDate = sqlDate
+        setTimeout(storeTask, 100 * index, task);
+      })
+    })
+    .catch(err => {
+      console.log(err);
+    })
+}
+async function sales_dailyAttendToday() {
+  const data = await sequelize.query("select employee_id, InTime, OutTime from ( select daystarttype DayStartType,date_format(InTime,'%Y-%m-%d') Date,UserErpId,PunchDate, sales_mst.new_e_code employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else case when InTime > PunchDate then InTime else case when OutTime > PunchDate then OutTime else NULL end end end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else case when OutTime > PunchDate then OutTime else case when InTime > PunchDate then InTime else NULL end end end,INTERVAL 330 minute)) OutTime from dailytasks as tasks, sales_employee_mapping as sales_mst where tasks.UserErpId = sales_mst.sales_id and PunchDate >= date_format(current_date(), '%Y-%m-%d') group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate) tt;", { type: QueryTypes.SELECT });
+  data?.map(async attend => {
+    //sales_mssqlToday(attend);
+    console.log(attend);
+    console.log(`${attend.InTime}`);
+    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime?.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime?.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    /* salesDailyAttendance.create(attend)
+      .then(data => {
+      })
+      .catch(err => {
+        console.log(err);
+      }) */
+  })
+  const unmatched_data = await sequelize.query(`select UserErpId as employee_id, min(date_add(case when ActivityType='Day End (Normal)' then OutTime else  case when InTime > PunchDate then InTime else case when OutTime > PunchDate then OutTime else NULL end end end,INTERVAL 330 minute)) InTime, max(date_add(case when ActivityType='Day Start' then InTime else case when OutTime > PunchDate then OutTime else case when InTime > PunchDate then InTime else NULL end end end,INTERVAL 330 minute)) OutTime from dailytasks as tasks where PunchDate >= date_format(current_date(), '%Y-%m-%d') and UserErpId Not In (select distinct(sales_id) from sales_employee_mapping) group by daystarttype,PunchDate,UserErpId order by daystarttype,usererpid,PunchDate;`, { type: QueryTypes.SELECT });
+  unmatched_data?.map(async attend => {
+    //sales_mssqlToday(attend);
+    console.log(attend);
+    await sequelize.query(`Insert into sales_dailyattendances (employee_id, InTime, OutTime, createdAt, updatedAt) values ('${attend.employee_id}','${attend.InTime?.toISOString().slice(0, 19).replace('T', ' ')}', '${attend.OutTime?.toISOString().slice(0, 19).replace('T', ' ')}',now(),now())`, { type: QueryTypes.INSERT })
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+    /* salesDailyAttendance.create(attend)
+      .then(data => {
+      })
+      .catch(err => {
+        console.log(err);
+      }) */
+  })
+}
+//sales_dailyAttend()
+//sales_dailyAttendToday()
+async function sales_mssqlToday(data) {
+  var dayStart = ''
+  var dayEnd = ''
+  if (data.InTime) {
+    dayStart = data.InTime?.toISOString();
+  }
+  if (data.OutTime) {
+    dayEnd = data.OutTime?.toISOString();
+  }
+  console.log(dayStart);
+  console.log(dayEnd);
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${dayStart}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('${data.employee_id}','${dayEnd}',GETDATE(),GETDATE(),'0')`, { type: QueryTypes.INSERT })
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+}
+dailyTaskToday();
+
+//employeeData()
