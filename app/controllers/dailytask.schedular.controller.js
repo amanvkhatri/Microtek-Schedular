@@ -489,6 +489,26 @@ async function sales_mssqlToday(data) {
       console.log(err);
     })
 }
-dailyTaskToday();
+//dailyTaskToday();
 
 //employeeData()
+
+async function abc(){
+  await msSequelize.query(`INSERT INTO mtek_raw_punch_ps_napp(Empid ,Punch_Date_Time ,RP_CREATED_DATE ,Record_LastUpdated ,Isread) VALUES ('57055','2023-08-11 17:31:01','2023-08-12 05:31:11','2023-08-12 05:31:11','0')`, { type: QueryTypes.INSERT })
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+}
+//abc()
+async function abc1(){
+  await msSequelize.query(`select * from mtek_raw_punch_ps_napp where Empid = '56285' and Punch_Date_Time > '2023-08-04' `, { type: QueryTypes.SELECT })
+  .then((res) => {
+    console.log(res);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+}
